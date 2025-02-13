@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/services/network_caller.dart';
+import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/widgets/background_app.dart';
+import 'package:task_manager_app/ui/widgets/centered_circular_progress_indicator.dart';
+import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 import 'package:task_manager_app/ui/widgets/theme_appBar.dart';
 
 class AddNewTaskScreen extends StatefulWidget {
@@ -15,6 +19,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
+  bool _addNewTaskInProgress = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,18 +44,38 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                 TextFormField(
                   controller: _titleController,
                   decoration: InputDecoration(hintText: 'Title'),
+                  validator: (String? value) {
+                    if (value?.trim().isEmpty ?? true) {
+                      return "Enter your title here";
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _descriptionController,
                   maxLines: 6,
                   decoration: InputDecoration(hintText: 'Description'),
+                  validator: (String? value) {
+                    if (value?.trim().isEmpty ?? true) {
+                      return "Enter your description here";
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Icon(Icons.arrow_circle_right_outlined,
-                      color: Colors.white),
+                Visibility(
+                  visible: _addNewTaskInProgress == false,
+                  replacement: const CenterCircularProgressIndicator(),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formkey.currentState!.validate()) {
+                        _createNewTask();
+                      }
+                    },
+                    child: Icon(Icons.arrow_circle_right_outlined,
+                        color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -58,6 +83,31 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
         )),
       ),
     );
+  }
+
+  Future<void> _createNewTask() async {
+    _addNewTaskInProgress = true;
+    setState(() {});
+    Map<String, dynamic> requestBody = {
+      "title": _titleController.text.trim(),
+      "description": _descriptionController.text.trim(),
+      "status": "New"
+    };
+    final NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.createTaskUrl, body: requestBody);
+    _addNewTaskInProgress = false;
+    setState(() {});
+    if (response.isSuccess) {
+      _clearTextField();
+      showSnackBarMessage(context, "Task created successfully");
+    } else {
+      showSnackBarMessage(context, response.errorMessage);
+    }
+  }
+
+  void _clearTextField() {
+    _titleController.clear();
+    _descriptionController.clear();
   }
 
   @override

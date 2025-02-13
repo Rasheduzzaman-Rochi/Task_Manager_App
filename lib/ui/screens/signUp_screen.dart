@@ -1,7 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/services/network_caller.dart';
+import 'package:task_manager_app/data/utils/urls.dart';
 import 'package:task_manager_app/ui/utils/app_colors.dart';
 import 'package:task_manager_app/ui/widgets/background_app.dart';
+import 'package:task_manager_app/ui/widgets/centered_circular_progress_indicator.dart';
+import 'package:task_manager_app/ui/widgets/snack_bar_message.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -24,6 +28,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       TextEditingController();
 
   final GlobalKey<FormState> _formState = GlobalKey<FormState>();
+  bool _signUpInProgress = false;
 
   @override
   Widget build(BuildContext context) {
@@ -46,31 +51,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
               SizedBox(height: 18),
               TextFormField(
                   controller: _emailEditingController,
+                  decoration: InputDecoration(hintText: 'Email'),
+                  validator: (String? value) {
+                    if (_emailEditingController.text.trim().isEmpty) {
+                      return 'Email is required';
+                    }
+                    if (!_emailEditingController.text.contains('@')) {
+                      return 'Invalid email format';
+                    }
+                    return null;
+                  }),
+              SizedBox(height: 8),
+              TextFormField(
+                  controller: _firstNameEditingController,
                   decoration: InputDecoration(
-                    hintText: 'Email',
-                  )),
+                    hintText: 'First name',
+                  ),
+                  validator: (String? value) {
+                    if (_firstNameEditingController.text.trim().isEmpty) {
+                      return 'First name is required';
+                    }
+                    return null;
+                  }),
               SizedBox(height: 8),
               TextFormField(
-                controller: _firstNameEditingController,
-                decoration: InputDecoration(
-                  hintText: 'First name',
-                ),
-              ),
+                  controller: _lastNameEditingController,
+                  decoration: InputDecoration(
+                    hintText: 'Last name',
+                  ),
+                  validator: (String? value) {
+                    if (_lastNameEditingController.text.trim().isEmpty) {
+                      return 'Last name is required';
+                    }
+                    return null;
+                  }),
               SizedBox(height: 8),
               TextFormField(
-                controller: _lastNameEditingController,
-                decoration: InputDecoration(
-                  hintText: 'Last name',
-                ),
-              ),
-              SizedBox(height: 8),
-              TextFormField(
-                controller: _mobileEditingController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Mobile',
-                ),
-              ),
+                  controller: _mobileEditingController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Mobile number',
+                  ),
+                  validator: (String? value) {
+                    if (_mobileEditingController.text.trim().isEmpty) {
+                      return 'Mobile number is required';
+                    }
+                    return null;
+                  }),
               SizedBox(height: 8),
               TextFormField(
                 controller: _passwordEditingController,
@@ -78,14 +105,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 decoration: InputDecoration(
                   hintText: 'Password',
                 ),
+                validator: (String? value) {
+                  if (value?.trim().isEmpty ?? true) {
+                    return 'Enter your password';
+                  }
+                  if (value!.length < 6) {
+                    return 'Password must be at least 6 characters long';
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: 18),
-              ElevatedButton(
-                  onPressed: () {},
-                  child: Icon(
-                    Icons.arrow_circle_right_outlined,
-                    color: Colors.white,
-                  )),
+              Visibility(
+                visible: _signUpInProgress == false,
+                replacement: CenterCircularProgressIndicator(),
+                child: ElevatedButton(
+                    onPressed: _onTapSignUpButton,
+                    child: Icon(
+                      Icons.arrow_circle_right_outlined,
+                      color: Colors.white,
+                    )),
+              ),
               SizedBox(height: 24),
               Center(
                 child: _buildSignInSection(),
@@ -95,6 +135,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       )),
     );
+  }
+
+  void _onTapSignUpButton() {
+    if (_formState.currentState!.validate()) {
+      _registerUser();
+    }
+  }
+
+  Future<void> _registerUser() async {
+    _signUpInProgress = true;
+    setState(() {});
+
+    Map<String, dynamic> requestBody = {
+      "email": _emailEditingController.text.trim(),
+      "firstName": _firstNameEditingController.text.trim(),
+      "lastName": _lastNameEditingController.text.trim(),
+      "mobile": _mobileEditingController.text.trim(),
+      "password": _passwordEditingController.text.trim(),
+      "photo": ""
+    };
+
+    final NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.registrationUrl, body: requestBody);
+    setState(() {});
+    _signUpInProgress = false;
+    if (response.isSuccess) {
+      _clearTextFields();
+      showSnackBarMessage(context, 'New user registration successful!');
+    } else {
+      showSnackBarMessage(context, response.errorMessage);
+    }
+  }
+
+  void _clearTextFields() {
+    _emailEditingController.clear();
+    _firstNameEditingController.clear();
+    _lastNameEditingController.clear();
+    _mobileEditingController.clear();
+    _passwordEditingController.clear();
   }
 
   Widget _buildSignInSection() {
