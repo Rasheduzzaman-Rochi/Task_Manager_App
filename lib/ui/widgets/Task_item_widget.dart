@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/models/Task_model.dart';
 
 class TaskItemWidget extends StatelessWidget {
   const TaskItemWidget({
-    super.key,
+    super.key, required this.taskModel,
   });
+
+  final TaskModel taskModel;
 
   @override
   Widget build(BuildContext context) {
@@ -12,22 +15,22 @@ class TaskItemWidget extends StatelessWidget {
       elevation: 0,
       child: ListTile(
         tileColor: Colors.white,
-        title: Text("Title will be here"),
+        title: Text(taskModel.title ?? ''),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Subtitle will be"),
-            Text("Date: 12/12/2024"),
+            Text(taskModel.description ?? ''),
+            Text("Date: ${taskModel.createdDate ?? ''}"),
             SizedBox(height: 4.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Chip(
                   label: Text(
-                    'New',
+                    taskModel.status ?? 'New',
                     style: TextStyle(color: Colors.white),
                   ),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: _getStatusColor(taskModel.status ?? 'New'),
                 ),
                 Row(
                   children: [
@@ -41,5 +44,17 @@ class TaskItemWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getStatusColor(String status){
+    if(status == 'New'){
+      return Colors.blue;
+    }else if(status == 'Progress'){
+      return Colors.yellow;
+    }else if(status == 'Cancelled'){
+      return Colors.red;
+    }else{
+      return Colors.green;
+    }
   }
 }

@@ -78,7 +78,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ),
               SizedBox(height: 18),
               Visibility(
-                visible: _signInProgress == false,
+                visible: !_signInProgress,
                 replacement: CenterCircularProgressIndicator(),
                 child: ElevatedButton(
                     onPressed: _onTapSigninScreen,
@@ -115,24 +115,50 @@ class _SigninScreenState extends State<SigninScreen> {
   }
 
   Future<void> _signIn() async {
-    _signInProgress = true;
-    setState(() {});
+    if (!mounted) return; // Ensure widget is still mounted
+
+    setState(() {
+      _signInProgress = true;
+    });
+
     Map<String, dynamic> requestBody = {
       "email": _emailEditingController.text.trim(),
       "password": _passwordEditingController.text,
     };
-    final NetworkResponse response =
-        await NetworkCaller.postRequest(url: Urls.loginUrl, body: requestBody);
-    _signInProgress = false;
-    setState(() {});
+
+    print("Login Request Body: $requestBody");
+
+    final NetworkResponse response = await NetworkCaller.postRequest(
+      url: Urls.loginUrl,
+      body: requestBody,
+    );
+
+    if (!mounted) return; // Ensure widget is still mounted
+
+    setState(() {
+      _signInProgress = false;
+    });
+
+    print("Response Status Code: ${response.statusCode}");
+    print("Response Body: ${response.responseData}");
+
     if (response.isSuccess) {
+      // Log token and user data for debugging
       String token = response.responseData!['token'];
       UserModel userModel = UserModel.fromJson(response.responseData!['data']);
-      await AuthController.saveUserData(token, userModel);
+      print("Token: $token");
+      print("User Model: $userModel");
+
+      await AuthController.saveUserData(
+          token, userModel, response.responseData!['expiryTime']);
+      print("User data saved successfully.");
+
+      if (!mounted) return;
+      print("Navigating to MainBottomNavScreen");
+
+      // Direct navigation to MainBottomNavScreen using pushReplacement
       Navigator.pushReplacementNamed(context, MainBottomNavScreen.name);
     } else {
-      _signInProgress = false;
-      setState(() {});
       if (response.statusCode == 401) {
         showSnackBarMessage(context, 'Email/Password is invalid! Try again');
       } else {
@@ -144,7 +170,7 @@ class _SigninScreenState extends State<SigninScreen> {
   Widget _buildSignUpSection() {
     return RichText(
       text: TextSpan(
-        text: "Don't have account? ",
+        text: "Don't have an account? ",
         style: TextStyle(
           color: Colors.black54,
           fontWeight: FontWeight.w600,
@@ -159,7 +185,7 @@ class _SigninScreenState extends State<SigninScreen> {
               ..onTap = () {
                 Navigator.pushNamed(context, SignUpScreen.name);
               },
-          ), // Added closing parenthesis for TextSpan
+          ),
         ],
       ),
     );

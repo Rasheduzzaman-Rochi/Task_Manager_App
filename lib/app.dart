@@ -13,10 +13,14 @@ import 'package:task_manager_app/ui/utils/app_colors.dart';
 class TaskManagerApp extends StatelessWidget {
   const TaskManagerApp({super.key});
 
+  static GlobalKey<NavigatorState> navigatorkey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      navigatorKey: navigatorkey,
       theme: ThemeData(
           useMaterial3: true,
           textTheme: TextTheme(
@@ -45,30 +49,29 @@ class TaskManagerApp extends StatelessWidget {
                       EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                   foregroundColor: Colors.white,
                   textStyle: TextStyle(fontSize: 16)))),
-      initialRoute: SplashScreen.name,
-      onGenerateRoute: (RouteSettings settings) {
-        late Widget widget;
-        if (settings.name == '/') {
-          widget = SplashScreen();
-        } else if (settings.name == SigninScreen.name) {
-          widget = SigninScreen();
-        } else if (settings.name == SignUpScreen.name) {
-          widget = SignUpScreen();
-        } else if (settings.name == ForgotPasswordScreen.name) {
-          widget = ForgotPasswordScreen();
-        } else if (settings.name == ForgotPasswordOtpScreen.name) {
-          widget = ForgotPasswordOtpScreen();
-        } else if (settings.name == SetPasswordScreen.name) {
-          widget = SetPasswordScreen();
-        } else if (settings.name == MainBottomNavScreen.name) {
-          widget = MainBottomNavScreen();
-        } else if (settings.name == AddNewTaskScreen.name) {
-          widget = AddNewTaskScreen();
-        }else if (settings.name == UpdateProfileScreen.name) {
-          widget = UpdateProfileScreen();
-        }
-        return MaterialPageRoute(builder: (_) => widget);
-      },
+        onGenerateRoute: (RouteSettings settings) {
+          late Widget widget;
+          if (settings.name == SplashScreen.name) {
+            widget = SplashScreen();
+          } else if (settings.name == SigninScreen.name) {
+            widget = SigninScreen();
+          } else if (settings.name == SignUpScreen.name) {
+            widget = SignUpScreen();
+          } else if (settings.name == ForgotPasswordScreen.name) {
+            widget = ForgotPasswordScreen();
+          } else if (settings.name == ForgotPasswordOtpScreen.name) {
+            widget = ForgotPasswordOtpScreen();
+          } else if (settings.name == SetPasswordScreen.name) {
+            widget = SetPasswordScreen();
+          } else if (settings.name == MainBottomNavScreen.name) {
+            widget = MainBottomNavScreen();
+          } else if (settings.name == AddNewTaskScreen.name) {
+            widget = AddNewTaskScreen();
+          } else if (settings.name == UpdateProfileScreen.name) {
+            widget = UpdateProfileScreen();
+          }
+          return MaterialPageRoute(builder: (_) => widget);
+        },
     );
   }
 }

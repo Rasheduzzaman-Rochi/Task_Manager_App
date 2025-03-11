@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_manager_app/data/models/Task_model.dart';
 import 'package:task_manager_app/ui/widgets/Task_item_widget.dart';
 import 'package:task_manager_app/ui/widgets/background_app.dart';
 import 'package:task_manager_app/ui/widgets/theme_appBar.dart';
@@ -26,7 +27,7 @@ class _ProgressTaskListScreenState extends State<ProgressTaskListScreen> {
     return ListView.builder(
       itemCount: 10,
       itemBuilder: (context, index) {
-        return TaskItemWidget();
+        return TaskItemWidget(taskModel: TaskModel());
       },
     );
   }
